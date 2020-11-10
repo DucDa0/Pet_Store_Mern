@@ -34,3 +34,9 @@
   top: -40px;
   z-index: 999;
 }
+.ant-card {
+  box-shadow: 0px 2px 15px rgba(16, 110, 234, 0.15);
+}
+.ant-card-bordered {
+  border: unset;
+}

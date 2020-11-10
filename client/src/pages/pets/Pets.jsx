@@ -33,7 +33,7 @@ const menu = (
     </Menu.Item>
   </Menu>
 );
-const Pets = ({ products: { products, loading }, getAllProducts }) => {
+const Pets = ({ data: { products, loading }, getAllProducts }) => {
   useEffect(() => {
     getAllProducts();
   }, [getAllProducts]);
@@ -72,7 +72,6 @@ const Pets = ({ products: { products, loading }, getAllProducts }) => {
               products.map((product) => (
                 <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
                   <Card
-                    hoverable
                     cover={
                       <Link to={`/product/${product._id}`}>
                         <img
@@ -115,7 +114,7 @@ Pets.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  products: state.products,
+  data: state.products,
 });
 
 export default connect(mapStateToProps, { getAllProducts })(Pets);
