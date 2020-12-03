@@ -1,7 +1,11 @@
 :root {
   --mainstream-color: #106eea;
+  --secondstream-color: #f6f9fe;
+  --thirdstream-color: #e7f1fd;
+  --fourthstream-color: #e2eefd;
   --primary-color: #17a2b8;
   --dark-color: #363c44;
+  --dark-second-color: #444444;
   --light-color: #f6f6f6;
   --white-color: #fff;
   --danger-color: #dc3545;
@@ -13,16 +17,15 @@
   padding: 0;
 }
 body {
-  font-family: "Poppins", sans-serif !important;
+  font-family: 'Poppins', sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
+  color: var(--dark-color) !important;
 }
 
 .container {
   max-width: 1200px;
-  margin: auto;
+  margin: 10rem auto 3rem auto;
   overflow: hidden;
   padding: 0 1rem;
-  margin-bottom: 3rem;
-  margin-top: 9rem;
 }

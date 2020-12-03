@@ -1,0 +1,132 @@
+/* Navbar */
+.navbar {
+  background-color: var(--white-color);
+  box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
+  z-index: 999 !important;
+  .ant-layout-header,
+  &__info {
+    width: 100%;
+    display: block;
+    position: fixed;
+    top: 0;
+    height: auto;
+    padding: 0;
+  }
+  &__info {
+    background-color: var(--mainstream-color);
+    position: unset;
+  }
+  &__wrap,
+  &__info-wrap {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+  }
+  &__info-wrap {
+    display: flex;
+    align-items: center;
+    line-height: initial;
+  }
+  &__wrap-actions {
+    display: flex;
+    align-items: center;
+    line-height: initial;
+  }
+  &__wrap-actions &__wrap-actions--link:nth-child(2) {
+    cursor: pointer;
+  }
+  .logo {
+    width: fit-content;
+  }
+  .logo h1 {
+    margin: 0;
+    width: fit-content;
+    font-size: 1.8rem;
+    color: var(--white-color);
+  }
+  &__search {
+    width: 100%;
+    padding: 0 1.5rem;
+  }
+
+  &__info-contact {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    line-height: initial;
+  }
+  &__info-contact--phone {
+    margin-left: 22px;
+  }
+  &__info-contact--mail,
+  &__info-contact--phone {
+    display: flex;
+    align-items: center;
+  }
+  &__info-contact--mail span,
+  &__info-contact--phone span {
+    font-size: 0.85rem;
+    color: var(--white-color);
+    margin-left: 8px;
+  }
+  &__wrap-actions--link {
+    margin: 0 26px 0 0;
+    color: var(--mainstream-color);
+    font-size: 1.1rem;
+  }
+  &__info-social {
+    display: flex;
+    align-items: center;
+  }
+  &__info-social a {
+    margin: 0 8px;
+    color: var(--white-color);
+  }
+}
+
+.ant-dropdown-menu-submenu-title,
+.type__title {
+  font-size: 1rem;
+  font-weight: 100;
+}
+// Footer
+
+.footer {
+  background-color: var(--secondstream-color);
+  font-size: 0.9rem;
+  a {
+    color: var(--dark-second-color);
+  }
+  p:hover a {
+    color: var(--mainstream-color);
+  }
+  &__wrap.container {
+    margin: 0 auto;
+    padding: 2rem 1rem 0 1rem;
+  }
+  &__logo,
+  &__link,
+  &__privacy,
+  &__social {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-second-color);
+  }
+  &__address,
+  &__contact {
+    margin: 1rem auto;
+    p {
+      margin: 0;
+    }
+  }
+  &__phone,
+  &__email {
+    span {
+      font-weight: bold;
+    }
+  }
+}
