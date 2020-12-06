@@ -6,7 +6,7 @@
   --primary-color: #17a2b8;
   --dark-color: #363c44;
   --dark-second-color: #444444;
-  --light-color: #f6f6f6;
+  --light-color: #f0f0f0;
   --white-color: #fff;
   --danger-color: #dc3545;
   --success-color: #28a745;
@@ -17,7 +17,7 @@
   padding: 0;
 }
 body {
-  font-family: 'Poppins', sans-serif !important;
+  font-family: "Poppins", sans-serif !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
   color: var(--dark-color) !important;

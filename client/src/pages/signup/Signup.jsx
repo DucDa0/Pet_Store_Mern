@@ -10,6 +10,9 @@ const { Option } = Select;
 const Signup = ({ register }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const onFinish = async (values) => {
+    if (localStorage.token) {
+      return window.location.reload(false);
+    }
     const { name, email, phone, password, gender } = values;
     setIsProcessing(true);
     await register({
@@ -72,7 +75,7 @@ const Signup = ({ register }) => {
                   </Form.Item>
                   <Form.Item
                     name='name'
-                    label='Name'
+                    label='Tên'
                     rules={[
                       {
                         required: true,
@@ -84,7 +87,7 @@ const Signup = ({ register }) => {
                   </Form.Item>
                   <Form.Item
                     name='phone'
-                    label='Phone'
+                    label='Số điện thoại'
                     rules={[
                       {
                         required: true,
@@ -96,7 +99,7 @@ const Signup = ({ register }) => {
                   </Form.Item>
                   <Form.Item
                     name='password'
-                    label='Password'
+                    label='Mật khẩu'
                     rules={[
                       {
                         required: true,
@@ -109,7 +112,7 @@ const Signup = ({ register }) => {
                   </Form.Item>
                   <Form.Item
                     name='confirm'
-                    label='Confirm Password'
+                    label='Xác nhận mật khẩu'
                     dependencies={['password']}
                     hasFeedback
                     rules={[
@@ -132,7 +135,7 @@ const Signup = ({ register }) => {
                   </Form.Item>
                   <Form.Item
                     name='gender'
-                    label='Gender'
+                    label='Giới tính'
                     rules={[
                       {
                         required: true,
@@ -154,7 +157,7 @@ const Signup = ({ register }) => {
                         message: 'Vui lòng chọn ngày sinh!',
                       },
                     ]}
-                    label='DatePicker'
+                    label='Ngày sinh'
                   >
                     <DatePicker />
                   </Form.Item>
@@ -180,4 +183,7 @@ const Signup = ({ register }) => {
 Signup.propTypes = {
   register: PropTypes.func.isRequired,
 };
-export default connect(null, { register })(Signup);
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+export default connect(mapStateToProps, { register })(Signup);
