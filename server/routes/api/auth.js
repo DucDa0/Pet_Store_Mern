@@ -2,13 +2,17 @@ const express = require('express');
 const router = express.Router();
 
 const AuthController = require('../../app/controllers/AuthController');
+
+const auth = require('../../app/middlewares/auth');
+
 const {
   validateSignUp,
   validateSignIn,
-  validateForgetPassword,
+  validateForgotPassword,
   validateResetPassword,
+  validateUpdateUser,
+  validateUpdateAddress,
 } = require('../../helpers/valid');
-const auth = require('../../app/middlewares/auth');
 
 // @route   POST api/auth/signup
 // @desc    Sign up an account
@@ -29,5 +33,55 @@ router.post('/signin', validateSignIn, AuthController.signIn);
 // @desc    Get user data
 // @access  Private
 router.get('/user', auth, AuthController.getUserData);
+
+// @route   PUT api/auth/forgetpassword
+// @desc    Forget password
+// @access  Public
+router.put(
+  '/forgotpassword',
+  validateForgotPassword,
+  AuthController.forgotPassword
+);
+
+// @route   PUT api/auth/resetpassword
+// @desc    Reset password
+// @access  Public
+router.put(
+  '/resetpassword',
+  validateResetPassword,
+  AuthController.resetPassword
+);
+
+// @route   PUT api/auth/update_user
+// @desc    Reset password
+// @access  Public
+router.put(
+  '/update_user',
+  [auth, validateUpdateUser],
+  AuthController.updateUserInfo
+);
+
+// @route   PUT api/auth/add_address
+// @desc    Add user address
+// @access  Private
+router.put(
+  '/add_address',
+  [auth, validateUpdateAddress],
+  AuthController.AddUserAddress
+);
+
+// @route   PUT api/auth/remove_address
+// @desc    Remove user address
+// @access  Private
+router.put('/remove_address', auth, AuthController.RemoveUserAddress);
+
+// @route   PUT api/auth/update_address
+// @desc    Update user address
+// @access  Private
+router.put(
+  '/update_address',
+  [auth, validateUpdateAddress],
+  AuthController.UpdateUserAddress
+);
 
 module.exports = router;
