@@ -9,7 +9,10 @@ module.exports.validateSignUp = [
       max: 32,
     })
     .withMessage('Độ dài của tên phải nằm trong khoảng từ 2 đến 32 ký tự'),
-  check('email', 'Vui lòng nhập email hợp lệ').isEmail(),
+  check('email', 'Vui lòng nhập email')
+    .notEmpty()
+    .isEmail()
+    .withMessage('Vui lòng nhập email hợp lệ'),
   check('password', 'Vui lòng nhập mật khẩu')
     .notEmpty()
     .isLength({
@@ -27,17 +30,27 @@ module.exports.validateSignUp = [
       max: 10,
     })
     .withMessage('Số điện thoại không hợp lệ'),
+  check('gender', 'Vui lòng chọn giới tính')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Giới tính không hợp lệ'),
 ];
 
 //Sign in
 module.exports.validateSignIn = [
-  check('email', 'Vui lòng nhập email hợp lệ').isEmail(),
+  check('email', 'Vui lòng nhập email')
+    .notEmpty()
+    .isEmail()
+    .withMessage('Vui lòng nhập email hợp lệ'),
   check('password', 'Vui lòng nhập mật khẩu').notEmpty(),
 ];
 
 //Forget password
 module.exports.validateForgotPassword = [
-  check('email', 'Vui lòng nhập email hợp lệ').isEmail(),
+  check('email', 'Vui lòng nhập email')
+    .notEmpty()
+    .isEmail()
+    .withMessage('Vui lòng nhập email hợp lệ'),
 ];
 
 //Reset password
@@ -89,14 +102,15 @@ module.exports.validateUpdateUser = [
       max: 32,
     })
     .withMessage('Độ dài của tên phải nằm trong khoảng từ 2 đến 32 ký tự'),
-  check('phone', 'Vui lòng nhập số điện thoại hợp lệ')
-    .isNumeric()
+  check('phone', 'Vui lòng nhập số điện thoại')
     .notEmpty()
+    .isNumeric()
+    .withMessage('Số điện thoại không hợp lệ')
     .isLength({
       min: 10,
       max: 10,
     })
-    .withMessage('Số điện thoại không hợp lệ'),
+    .withMessage('Số điện thoại tối thiểu và tối đa 10 chữ số'),
 ];
 
 // Update/Add address user
@@ -105,4 +119,71 @@ module.exports.validateUpdateAddress = [
   check('wardState', 'Vui lòng chọn Quận/Huyện hợp lệ!').notEmpty(),
   check('townState', 'Vui lòng chọn Phường/Xã hợp lệ!').notEmpty(),
   check('moreInfo', 'Vui lòng nhập địa chỉ!').notEmpty(),
+];
+
+// Order
+module.exports.validateOrder = [
+  check('name', 'Vui lòng nhập họ tên')
+    .notEmpty()
+    .isLength({
+      min: 2,
+      max: 32,
+    })
+    .withMessage('Độ dài của tên phải nằm trong khoảng từ 2 đến 32 ký tự'),
+  check('email', 'Vui lòng nhập email')
+    .notEmpty()
+    .isEmail()
+    .withMessage('Vui lòng nhập email hợp lệ'),
+  check('phone', 'Vui lòng nhập số điện thoại')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Số điện thoại không hợp lệ')
+    .isLength({
+      min: 10,
+      max: 10,
+    })
+    .withMessage('Số điện thoại tối thiểu và tối đa 10 chữ số'),
+  check('deliveryState', 'Vui lòng chọn phương thức vận chuyển')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Phương thức vận chuyển không hợp lệ'),
+  check('paymentState', 'Vui lòng chọn phương thức thanh toán')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Phương thức thanh toán không hợp lệ'),
+  check('totalMoney', 'Đơn hàng không hợp lệ')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Đơn hàng không hợp lệ'),
+];
+
+// Order when login
+module.exports.validateOrderAuth = [
+  check('address', 'Vui lòng chọn địa chỉ hợp lệ').notEmpty(),
+  check('totalMoney', 'Đơn hàng không hợp lệ')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Đơn hàng không hợp lệ'),
+  check('deliveryState', 'Vui lòng chọn phương thức vận chuyển')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Phương thức vận chuyển không hợp lệ'),
+  check('paymentState', 'Vui lòng chọn phương thức thanh toán')
+    .notEmpty()
+    .isNumeric()
+    .withMessage('Phương thức thanh toán không hợp lệ'),
+];
+
+// Valid review content
+module.exports.validateReview = [
+  check('starRatings', 'Vui lòng đánh giá sản phẩm')
+    .notEmpty()
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('Số đánh giá phải nằm trong khoảng từ 0 đến 5'),
+  check('comment', 'Vui lòng nhập bình luận').notEmpty(),
+];
+
+// Valid comment on review content
+module.exports.validateComment = [
+  check('replyComment', 'Vui lòng nhập bình luận').notEmpty(),
 ];

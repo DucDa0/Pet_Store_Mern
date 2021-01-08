@@ -1,55 +1,16 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { useEffect, useState, Fragment } from 'react';
+import { Fragment } from 'react';
 import PropTypes from 'prop-types';
-import { Menu, Dropdown, Input } from 'antd';
+import { Input } from 'antd';
 import { Link } from 'react-router-dom';
-import { CartAction, UserNav } from '../../components';
-import api from '../../api';
+import { CartAction, UserNav, Loader } from '../../components';
 import { getProductsByType } from '../../redux/actions/products';
 import { connect } from 'react-redux';
 import './styles.scss';
 
-const { SubMenu } = Menu;
 const { Search } = Input;
 
-const NavBar = ({
-  getProductsByType,
-  auth: { isAuthenticated, user, loading },
-}) => {
-  const [types, setTypes] = useState([]);
-  const [category, setCategory] = useState([]);
-  useEffect(() => {
-    const getMenu = async () => {
-      const cat = await api.get('/categories');
-      const ty = await api.get('/types');
-      setCategory(cat.data);
-      setTypes(ty.data);
-    };
-    getMenu();
-  }, []);
-  const menu = (
-    <Menu>
-      {category.map((cat) => {
-        return (
-          <SubMenu key={cat._id} title={cat.categoryName}>
-            {types.map((ty) => {
-              return cat._id === ty.categoryId ? (
-                <Menu.Item key={ty._id}>
-                  <Link
-                    className='type__title'
-                    onClick={async () => await getProductsByType(ty._id)}
-                    to={`/pets/types/${ty._id}`}
-                  >
-                    {ty.typeName}
-                  </Link>
-                </Menu.Item>
-              ) : null;
-            })}
-          </SubMenu>
-        );
-      })}
-    </Menu>
-  );
+const NavBar = ({ auth: { isAuthenticated, user, loading } }) => {
   const onSearch = (value) => {
     console.log(value);
   };
@@ -72,14 +33,16 @@ const NavBar = ({
             </div>
           </div>
           <div className='navbar__info-social'>
-            {loading ? null : !isAuthenticated ? (
+            {loading ? (
+              <Loader className={''} />
+            ) : !isAuthenticated ? (
               <Fragment>
                 <Link to='/signin'>Đăng nhập</Link>
                 <Link to='/signup'>Đăng kí</Link>
               </Fragment>
             ) : (
               <div className='navbar__user'>
-                {!user ? null : <UserNav user={user} />}
+                {!user ? <Loader className={''} /> : <UserNav user={user} />}
               </div>
             )}
             <CartAction />
@@ -91,9 +54,30 @@ const NavBar = ({
           <Link className='navbar__wrap-actions--link' to='/'>
             Trang chủ
           </Link>
-          <Dropdown overlay={menu}>
-            <div className='navbar__wrap-actions--link'>Thú cưng</div>
-          </Dropdown>
+          <Link
+            className='navbar__wrap-actions--link'
+            to={`/pets/all_types/5f9d1f0f92c1c0b400863677`}
+          >
+            Chó cảnh
+          </Link>
+          <Link
+            className='navbar__wrap-actions--link'
+            to={`/pets/all_types/5f9d1f1d92c1c0b400863843`}
+          >
+            Mèo cảnh
+          </Link>
+          <Link
+            className='navbar__wrap-actions--link'
+            to={`/pets/all_types/5ff00f72488a9a35bcb5d1dc`}
+          >
+            Thức ăn
+          </Link>
+          <Link
+            className='navbar__wrap-actions--link'
+            to={`/pets/all_types/5ff01f04d5b5e035d8ed9f67`}
+          >
+            Phụ kiện
+          </Link>
           <Link className='navbar__wrap-actions--link' to='/about'>
             Về chúng tôi
           </Link>

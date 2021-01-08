@@ -1,0 +1,52 @@
+:root {
+  --mainstream-color: #106eea;
+  --secondstream-color: #f6f9fe;
+  --thirdstream-color: #e7f1fd;
+  --fourthstream-color: #e2eefd;
+  --primary-color: #17a2b8;
+  --dark-color: #363c44;
+  --dark-second-color: #4a4a4a;
+  --light-color: #f0f0f0;
+  --white-color: #fff;
+  --danger-color: #dc3545;
+  --success-color: #28a745;
+  --theme-dark: #141414;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: 'Lato', sans-serif !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  color: var(--dark-second-color) !important;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 10rem auto 3rem auto;
+  overflow: hidden;
+  padding: 0 1rem;
+}
+
+.site-layout .site-layout-background {
+  background: var(--white-color);
+}
+[data-theme='dark'] .site-layout .site-layout-background {
+  background: var(--theme-dark);
+}
+
+.ant-table-thead tr th {
+  font-weight: 600 !important;
+}
+.ck-content {
+  min-height: 500px;
+}
+.ck.ck-editor__editable_inline {
+  padding: 0 1.5rem !important;
+  ul {
+    padding-left: 1.5rem;
+  }
+}

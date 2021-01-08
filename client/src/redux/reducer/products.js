@@ -3,8 +3,8 @@ import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_ID } from '../types';
 
 const initialState = {
   products: [],
+  total: 0,
   product: null,
-  loading: true,
   error: {},
 };
 
@@ -14,8 +14,8 @@ export default function (state = initialState, action) {
     case GET_ALL_PRODUCTS:
       return {
         ...state,
-        products: payload,
-        loading: false,
+        products: payload.data,
+        total: payload.total,
       };
     case GET_PRODUCT_BY_ID:
       return {

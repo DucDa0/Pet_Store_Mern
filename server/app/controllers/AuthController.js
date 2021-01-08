@@ -1,18 +1,23 @@
-const { validationResult, body } = require('express-validator');
+const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const shortid = require('shortid');
 process.env['NODE_CONFIG_DIR'] = __dirname;
 const config = require('config');
 const nodemailer = require('nodemailer');
 const dayjs = require('dayjs');
 const axios = require('axios');
+const client = new OAuth2Client(config.get('GOOGLE_CLIENT'));
 
 const User = require('../models/User');
-// const Employee = require('../models/Employee');
-// const Admin = require('../models/Admin');
+const Product = require('../models/Product');
+const Employee = require('../models/Employee');
 
 class AuthController {
+  //* Client *//
+
   // @route   GET api/auth/user
   // @desc    Get user data
   // @access  Private
@@ -112,7 +117,7 @@ class AuthController {
         })
         .catch((err) => {
           return res.status(400).json({
-            error: err,
+            errors: [{ msg: err.message }],
           });
         });
     } catch (error) {
@@ -158,8 +163,14 @@ class AuthController {
       //Định dạng lại ngày
       user.dateOfBirth = dayjs(user.dateOfBirth).format();
       //Lưu tài khoản vào csdl
-      await user.save();
-      return res.json({ message: 'Kích hoạt tài khoản thành công!' });
+      await user.save((err, data) => {
+        if (!err) {
+          return res.json({ message: 'Kích hoạt tài khoản thành công!' });
+        }
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'Kích hoạt tài khoản thất bại!' }] });
+      });
     } catch (error) {
       return res.status(401).json({
         errors: [
@@ -189,19 +200,6 @@ class AuthController {
           errors: [{ msg: 'Email hoặc mật khẩu không hợp lệ!' }],
         });
       }
-      // if (!user) {
-      //   //Kiểm tra xem có phải nhân viên đăng nhập không
-      //   user = await Employee.findOne({ email });
-      //   if (!user) {
-      //     //Kiểm tra xem có phải nhân viên đăng nhập không
-      //     user = await Admin.findOne({ email });
-      //   }
-      //   if (!user) {
-      //     return res.status(400).json({
-      //       errors: [{ msg: 'Tên tài khoản hoặc mật khẩu không hợp lệ' }],
-      //     });
-      //   }
-      // }
       //Kiểm tra mật khẩu
       const isMatch = await user.checkPassword(password);
       if (!isMatch) {
@@ -213,6 +211,7 @@ class AuthController {
       const payload = {
         user: {
           id: user._id,
+          role: user.role,
         },
       };
       //Trả về token
@@ -227,6 +226,161 @@ class AuthController {
       );
     } catch (error) {
       return res.status(500).send('Server error');
+    }
+  }
+
+  // @route   POST api/auth/facebooklogin
+  // @desc    Sign in with facebok account
+  // @access  Public
+  async facebookLogin(req, res) {
+    const { userID, accessToken } = req.body;
+    const URL = `https://graph.facebook.com/v9.0/${userID}/?fields=id,name,email,picture&access_token=${accessToken}`;
+    if (!userID || !accessToken) {
+      return;
+    }
+    try {
+      const facebookRes = await axios.default.get(URL);
+      const {
+        email,
+        name,
+        picture: { data },
+      } = facebookRes.data;
+      const user = await User.findOne({ email });
+      if (user) {
+        const payload = {
+          user: {
+            id: user._id,
+            role: user.role,
+          },
+        };
+        jwt.sign(
+          payload,
+          config.get('jwtSignInSecret'),
+          { expiresIn: '7d' },
+          (err, token) => {
+            if (err) throw err;
+            return res.json({ token });
+          }
+        );
+        return;
+      }
+      let newPassword = shortid.generate();
+      const salt = await bcrypt.genSalt(10);
+      let hashedPassword = await bcrypt.hash(newPassword, salt);
+      const newUser = new User({
+        name,
+        email,
+        avatar: data.url,
+        password: hashedPassword,
+      });
+      await newUser.save((err, userData) => {
+        if (err) {
+          return res.status(400).json({
+            errors: [{ msg: 'Đăng nhập thất bại, vui lòng thử lại!' }],
+          });
+        }
+        const payload = {
+          user: {
+            id: userData._id,
+            role: userData.role,
+          },
+        };
+        jwt.sign(
+          payload,
+          config.get('jwtSignInSecret'),
+          { expiresIn: '7d' },
+          (err, token) => {
+            if (err) throw err;
+            return res.json({ token });
+          }
+        );
+      });
+    } catch (err) {
+      return res.status(400).json({
+        errors: [{ msg: 'Đăng nhập thất bại, vui lòng thử lại!' }],
+      });
+    }
+  }
+  // @route   POST api/auth/googlelogin
+  // @desc    Sign in with google account
+  // @access  Public
+  async googleLogin(req, res) {
+    const { idToken } = req.body;
+    if (!idToken) {
+      return;
+    }
+    try {
+      client
+        .verifyIdToken({ idToken, audience: config.get('GOOGLE_CLIENT') })
+        .then(async (response) => {
+          const { email_verified, name, email, picture } = response.payload;
+
+          if (email_verified) {
+            const user = await User.findOne({ email });
+            if (user) {
+              const payload = {
+                user: {
+                  id: user._id,
+                  role: user.role,
+                },
+              };
+              jwt.sign(
+                payload,
+                config.get('jwtSignInSecret'),
+                { expiresIn: '7d' },
+                (err, token) => {
+                  if (err) throw err;
+                  return res.json({ token });
+                }
+              );
+              return;
+            }
+            let newPassword = shortid.generate();
+            const salt = await bcrypt.genSalt(10);
+            let hashedPassword = await bcrypt.hash(newPassword, salt);
+            const newUser = new User({
+              name,
+              email,
+              avatar: picture,
+              password: hashedPassword,
+            });
+            await newUser.save((err, userData) => {
+              if (err) {
+                return res.status(400).json({
+                  errors: [{ msg: 'Đăng nhập thất bại, vui lòng thử lại!' }],
+                });
+              }
+              const payload = {
+                user: {
+                  id: userData._id,
+                  role: userData.role,
+                },
+              };
+              jwt.sign(
+                payload,
+                config.get('jwtSignInSecret'),
+                { expiresIn: '7d' },
+                (err, token) => {
+                  if (err) throw err;
+                  return res.json({ token });
+                }
+              );
+            });
+          } else {
+            return res.status(400).json({
+              errors: [
+                {
+                  msg:
+                    'Tài khoản google của bạn chưa được xác thực, vui lòng thử lại!',
+                },
+              ],
+            });
+          }
+        });
+    } catch (err) {
+      return res.status(400).json({
+        errors: [{ msg: 'Đăng nhập thất bại, vui lòng thử lại!' }],
+      });
     }
   }
 
@@ -470,7 +624,7 @@ class AuthController {
   async AddUserAddress(req, res, next) {
     function getData(path) {
       return new Promise((resolve, reject) => {
-        axios
+        axios.default
           .get(path)
           .then(function (response) {
             resolve(response.data.results);
@@ -627,7 +781,7 @@ class AuthController {
   async UpdateUserAddress(req, res, next) {
     function getData(path) {
       return new Promise((resolve, reject) => {
-        axios
+        axios.default
           .get(path)
           .then(function (response) {
             resolve(response.data.results);
@@ -742,6 +896,249 @@ class AuthController {
         );
     } catch (err) {
       return res.status(500).send('Server Error');
+    }
+  }
+  // @route   PUT api/auth/favorite
+  // @desc    Add favorite product
+  // @access  Private
+  async favoriteProduct(req, res) {
+    const { productId } = req.body;
+    try {
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: 'Sản phẩm không tồn tại!' }] });
+      }
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: 'Người dùng không tồn tại!' }] });
+      }
+      let isHave = user.favoriteProducts.includes(productId);
+      if (isHave) {
+        const index = user.favoriteProducts.indexOf(productId);
+        user.favoriteProducts.splice(index, 1);
+      } else {
+        user.favoriteProducts = [productId, ...user.favoriteProducts];
+      }
+      user.save((err, updatedUser) => {
+        if (err) {
+          return res.status(400).json({
+            errors: [{ msg: 'Lỗi, không thể cập nhật dữ liệu người dùng!' }],
+          });
+        }
+        return res.json({ check: isHave });
+      });
+    } catch (err) {
+      return res.status(500).send('Server Error');
+    }
+  }
+  // @route   GET api/auth/favorite
+  // @desc    Get favorite product
+  // @access  Private
+  async getFavoriteProducts(req, res) {
+    try {
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: 'Người dùng không tồn tại!' }] });
+      }
+      let length = user.favoriteProducts.length;
+      let getFavoriteProducts = [];
+      if (length > 0) {
+        for (let i = 0; i < length; ++i) {
+          let product = await Product.findById(user.favoriteProducts[i]);
+          if (!product) {
+            return res
+              .status(404)
+              .json({ errors: [{ msg: 'Sản phẩm không tồn tại!' }] });
+          }
+          getFavoriteProducts = [
+            {
+              _id: product._id,
+              productName: product.productName,
+              price: product.price,
+              image: product.images[0],
+              starRatings: product.starRatings,
+            },
+            ...getFavoriteProducts,
+          ];
+        }
+        return res.json(getFavoriteProducts);
+      }
+      return res.json(getFavoriteProducts);
+    } catch (err) {
+      return res.status(500).send('Server Error');
+    }
+  }
+
+  //* Admin *//
+
+  // @route   GET api/auth/_user
+  // @desc    Get user data
+  // @access  Private
+  async get_UserData(req, res) {
+    try {
+      const user = await Employee.findById(req.user.id).select([
+        '-password',
+        '-resetPasswordLink',
+      ]);
+      if (!user) {
+        return res.status(404).json({
+          errors: [{ msg: 'Tài khoản không tồn tại' }],
+        });
+      }
+      return res.json(user);
+    } catch (error) {
+      return res.status(500).send('Server Error');
+    }
+  }
+
+  // @route   POST api/auth/_signin
+  // @desc    Sign in for admin/employee
+  // @access  Public
+  async _signIn(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { email, password } = req.body;
+    try {
+      //Lấy thông tin user theo email
+      let user = await Employee.findOne({ email });
+      if (!user) {
+        return res.status(400).json({
+          errors: [{ msg: 'Email hoặc mật khẩu không hợp lệ!' }],
+        });
+      }
+      //Kiểm tra mật khẩu
+      const isMatch = await user.checkPassword(password);
+      if (!isMatch) {
+        return res.status(400).json({
+          errors: [{ msg: 'Email hoặc mật khẩu không hợp lệ!' }],
+        });
+      }
+      const { id, role } = user;
+      if (role === 1 || role === 0) {
+        //Tạo payload cho token
+        const payload = {
+          user: {
+            id,
+            role,
+          },
+        };
+        //Trả về token
+        jwt.sign(
+          payload,
+          config.get('jwtSignInSecretAdmin'),
+          { expiresIn: '30d' },
+          (err, token) => {
+            if (err) throw err;
+            return res.json({ token });
+          }
+        );
+        return;
+      }
+      return res.status(401).json({
+        errors: [{ msg: 'Từ chối thao tác, bạn không có quyền truy cập!' }],
+      });
+    } catch (error) {
+      return res.status(500).send('Server error');
+    }
+  }
+
+  // @route   POST api/auth/_signup
+  // @desc    Sign up for Employee
+  // @access  Private
+  async _signUp(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const {
+      name,
+      email,
+      password,
+      phoneNumber,
+      address,
+      gender,
+      dateOfBirth,
+    } = req.body;
+    try {
+      //Lấy thông tin user theo email
+      let user = await Employee.findOne({ email });
+      if (user) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'Nhân viên này đã tồn tại!' }] });
+      }
+      //Mã hóa mật khẩu
+      const salt = await bcrypt.genSalt(10);
+
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const userFields = {
+        password: hashedPassword,
+        name,
+        email,
+        phoneNumber,
+        address,
+        gender,
+        dateOfBirth,
+      };
+
+      user = _.extend(user, userFields);
+
+      //Lưu tài khoản vào csdl
+      await user.save((err, data) => {
+        if (!err) {
+          return res.json({ message: 'Đăng ký thành công!' });
+        }
+        return res.status(400).json({ errors: [{ msg: 'Đăng ký thất bại!' }] });
+      });
+    } catch (error) {
+      return res.status(500).send('Server error');
+    }
+  }
+
+  // @route   POST api/auth/_signup_admin
+  // @desc    Sign up for Admin
+  // @access  Private
+  async _signUp_admin(req, res) {
+    const { name, email, password, secret } = req.body;
+    if (!secret || secret !== config.get('SECRET_ADMIN_SIGNUP')) {
+      return res.status(400).json({ errors: [{ msg: 'Truy cập bị chặn!!' }] });
+    }
+    try {
+      //Lấy thông tin user theo email
+      let user = await Employee.findOne({ email });
+      if (user) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'Admin này đã tồn tại!' }] });
+      }
+      //Mã hóa mật khẩu
+      const salt = await bcrypt.genSalt(10);
+
+      const hashedPassword = await bcrypt.hash(password, salt);
+      user = new Employee({
+        password: hashedPassword,
+        name,
+        email,
+      });
+      user.role = 0;
+      //Lưu tài khoản vào csdl
+      await user.save((err, data) => {
+        if (!err) {
+          return res.json({ message: 'Đăng ký thành công!' });
+        }
+        return res.status(400).json({ errors: [{ msg: 'Đăng ký thất bại!' }] });
+      });
+    } catch (error) {
+      return res.status(500).send('Server error');
     }
   }
 }

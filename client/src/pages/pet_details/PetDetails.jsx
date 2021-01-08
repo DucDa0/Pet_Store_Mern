@@ -2,9 +2,10 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Row, Col, Card, Button, Rate } from 'antd';
+import { Row, Col, Card, Rate, Button, message } from 'antd';
 import { Carousel } from 'react-responsive-carousel';
-import { AddToCart } from '../../icons';
+import { AddToCartDetail } from '../../icons';
+import { FavoriteAction } from '../../components';
 
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import './styles.scss';
@@ -14,13 +15,15 @@ import { addItem } from '../../utils/cart';
 import { Loader } from '../../components';
 import { connect } from 'react-redux';
 
-const PetDetails = ({ getProductById, match, data }) => {
-  const [loading, setLoading] = useState(true);
+const PetDetails = ({
+  getProductById,
+  match,
+  data,
+  auth: { user, isAuthenticated },
+}) => {
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    if (data && data._id === match.params.id) {
-      setLoading(false);
-      return;
-    }
     async function getData() {
       setLoading(true);
       await getProductById(match.params.id);
@@ -28,14 +31,19 @@ const PetDetails = ({ getProductById, match, data }) => {
     }
     getData();
   }, [getProductById, match.params.id]);
-
+  const handleAddToCart = (item) => {
+    if (item) {
+      addItem(item);
+      return message.success('Đã thêm sản phẩm vào giỏ hàng');
+    }
+  };
   return (
     <section className='pet-details'>
       <div className='container'>
         <h1 className='pet-details__title'>Chi tiết</h1>
         <div className='pet-details__content'>
           {loading || !data ? (
-            <Loader />
+            <Loader className={'loader'} />
           ) : (
             <div className='pet-details__wrap'>
               <Row gutter={[16, 16]}>
@@ -54,26 +62,38 @@ const PetDetails = ({ getProductById, match, data }) => {
                 </Col>
                 <Col xs={24} sm={24} md={12} lg={12}>
                   <div className='pet-details__card-info'>
-                    <Card title={data.productName} bordered={false}>
+                    <Card
+                      actions={[
+                        <FavoriteAction
+                          isAuthenticated={isAuthenticated}
+                          data={data}
+                          user={user}
+                          favoriteState={
+                            user
+                              ? user.favoriteProducts.includes(data._id)
+                              : null
+                          }
+                        />,
+                        <Button
+                          type='text'
+                          icon={<AddToCartDetail />}
+                          onClick={() => handleAddToCart(data)}
+                        />,
+                      ]}
+                      title={data.productName}
+                      bordered={false}
+                    >
                       <p>
-                        <b>Nguồn gốc : </b>
-                        {data.origin}
-                      </p>
-                      <p>
-                        <b>Tuổi : </b>
-                        {data.age}
-                      </p>
-                      <p>
-                        <b>Cân nặng : </b>
-                        {data.weight}
-                      </p>
-                      <p>
-                        <b>Giới tính : </b>
-                        {data.gender === 0 ? 'Đực' : 'Cái'}
-                      </p>
-                      <p>
-                        <b>Màu sắc: </b>
-                        {data.color}
+                        <b>Tình trạng: </b>
+                        <span
+                          style={{
+                            color: data.status
+                              ? 'var(--success-color)'
+                              : 'var(--danger-color)',
+                          }}
+                        >
+                          {data.status ? 'Còn hàng' : 'Hết hàng'}
+                        </span>
                       </p>
                       <p>
                         <b>Giá : </b>
@@ -85,12 +105,6 @@ const PetDetails = ({ getProductById, match, data }) => {
                         </span>
                       </p>
                       <Rate disabled defaultValue={data.starRatings} />
-                      <Button
-                        onClick={() => addItem(data)}
-                        className='addToCart'
-                        icon={<AddToCart />}
-                        type='primary'
-                      />
                     </Card>
                   </div>
                 </Col>
@@ -109,6 +123,7 @@ PetDetails.propTypes = {
 
 const mapStateToProps = (state) => ({
   data: state.products.product,
+  auth: state.auth,
 });
 
 export default connect(mapStateToProps, { getProductById })(PetDetails);

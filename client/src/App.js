@@ -2,12 +2,18 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Navbar, Footer } from './pages';
 import { Routes } from './routes';
-
+import MessengerCustomerChat from 'react-messenger-customer-chat';
 import { Provider } from 'react-redux';
 import store from './store';
 import setAuthToken from './auth/setAuthToken';
 import { loadUser } from './redux/actions/auth';
-import { LOGOUT, CLEAR_PROFILE, CART_LOADER, REMOVE_CART } from './redux/types';
+import {
+  LOGOUT,
+  CLEAR_CHECKOUT_INFO,
+  CART_LOADER,
+  REMOVE_CART,
+} from './redux/types';
+import { REACT_APP_FACEBOOK_CLIENT } from './config/login';
 import api from './api';
 function App() {
   useEffect(() => {
@@ -32,7 +38,9 @@ function App() {
         api.defaults.headers.common['x-auth-token'] !== localStorage.token
       ) {
         store.dispatch({ type: LOGOUT });
-        store.dispatch({ type: CLEAR_PROFILE });
+        store.dispatch({ type: REMOVE_CART });
+        store.dispatch({ type: CLEAR_CHECKOUT_INFO });
+        localStorage.removeItem('cart');
       }
     });
   }, []);
@@ -40,6 +48,12 @@ function App() {
     <Provider store={store}>
       <Router>
         <Navbar />
+        <div>
+          <MessengerCustomerChat
+            pageId='106278264756196'
+            appId={REACT_APP_FACEBOOK_CLIENT}
+          />
+        </div>
         <Switch>
           <Route component={Routes} />
         </Switch>
