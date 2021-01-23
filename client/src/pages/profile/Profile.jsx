@@ -2,7 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Row, Col } from 'antd';
 import { ProfileSide } from '../../components';
-import { ProfileInfo, ProfileAddress, ProfileWishlist } from '../../components';
+import {
+  ProfileInfo,
+  ProfileAddress,
+  ProfileWishlist,
+  ProfileOrder,
+  ProfilePurchased,
+} from '../../components';
 import { connect } from 'react-redux';
 import queryString from 'query-string';
 import './styles.scss';
@@ -34,6 +40,10 @@ const Profile = ({ location, auth: { user } }) => {
                 <ProfileAddress />
               ) : tabState === 'wishlist' ? (
                 <ProfileWishlist />
+              ) : tabState === 'orders' ? (
+                <ProfileOrder />
+              ) : tabState === 'purchased' ? (
+                <ProfilePurchased />
               ) : (
                 !tabState && <ProfileInfo />
               )}

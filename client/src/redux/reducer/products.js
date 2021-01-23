@@ -5,7 +5,6 @@ const initialState = {
   products: [],
   total: 0,
   product: null,
-  error: {},
 };
 
 export default function (state = initialState, action) {

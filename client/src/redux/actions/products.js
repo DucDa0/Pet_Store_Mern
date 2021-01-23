@@ -1,23 +1,8 @@
 import api from '../../api';
 import { GET_ALL_PRODUCTS, GET_PRODUCT_BY_ID } from '../types';
+import { notification } from 'antd';
 
-// Get all products
-export const getAllProducts = () => async (dispatch) => {
-  try {
-    const res = await api.get('/products');
-    dispatch({
-      type: GET_ALL_PRODUCTS,
-      payload: res.data,
-    });
-  } catch (err) {
-    // dispatch({
-    //   type: PRODUCTS_ERROR,
-    //   payload: { msg: err.response.statusText, status: err.response.status },
-    // });
-  }
-};
-
-// Get products by Type
+// Lấy sản phẩm theo typeId
 export const getProductsByType = (id, filterValue, page) => async (
   dispatch
 ) => {
@@ -29,15 +14,10 @@ export const getProductsByType = (id, filterValue, page) => async (
       type: GET_ALL_PRODUCTS,
       payload: res.data,
     });
-  } catch (err) {
-    // dispatch({
-    //   type: PRODUCTS_ERROR,
-    //   payload: { msg: err.response.statusText, status: err.response.status },
-    // });
-  }
+  } catch (err) {}
 };
 
-// Get product by id
+// Lấy sản phẩm theo id
 export const getProductById = (id) => async (dispatch) => {
   try {
     const res = await api.get(`/products/${id}`);
@@ -45,13 +25,32 @@ export const getProductById = (id) => async (dispatch) => {
       type: GET_PRODUCT_BY_ID,
       payload: res.data,
     });
-  } catch (err) {}
+  } catch (err) {
+    const errors = err.response.data.errors;
+
+    if (errors) {
+      errors.forEach((error) =>
+        notification.open({
+          message: 'Lỗi!',
+          description: error.msg,
+        })
+      );
+    }
+  }
 };
 
-// Get all types by catId
-export const getTypesByCatId = (id) => async (dispatch) => {
+//Lấy sản phẩm theo từ khóa
+export const getSearchProductsList = (q, filterValue, page) => async (
+  dispatch
+) => {
   try {
-    const res = await api.get(`/types/categories/${id}`);
-    return res.data;
-  } catch (err) {}
+    const res = await api.get(
+      `/products/search?q=${q}&sort=${filterValue}&page=${page}`
+    );
+    dispatch({
+      type: GET_ALL_PRODUCTS,
+      payload: res.data,
+    });
+  } catch (err) { }
 };
+

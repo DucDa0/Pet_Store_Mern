@@ -67,6 +67,7 @@ const CartHome = ({ cartState, history }) => {
                             onChange={(value) => {
                               setAmount(item._id, value);
                             }}
+                            max={100}
                             min={1}
                             value={item.amount}
                           />

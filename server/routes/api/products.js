@@ -2,99 +2,78 @@ const express = require('express');
 const router = express.Router();
 
 const ProductController = require('../../app/controllers/ProductController');
-const auth = require('../../app/middlewares/auth');
 const checkPermission = require('../../app/middlewares/checkPermission');
+const authAdmin = require('../../app/middlewares/auth_admin');
 
 const {
   validateCreateProductInfo,
   validateUpdateProductInfo,
-  validateComment,
-  validateReview,
 } = require('../../helpers/valid');
+
+// @route   GET api/products/deleted
+// @desc    Lấy tất cả sản phẩm đã ẩn đi
+// @access  Private
+router.get('/deleted', authAdmin, ProductController.getDeleted);
+
+// @route   GET api/products/search
+// @desc    Tìm kiếm sản phẩm theo từ khóa
+// @access  Public
+router.get('/search', ProductController.search);
+
 // @route   GET api/products
-// @desc    Get all products
+// @desc    Lấy tất cả sản phẩm
 // @access  Public
 router.get('/', ProductController.getAll);
 
-// @route   GET api/products/deleted
-// @desc    Get all products has been soft deleted
-// @access  Private
-router.get('/deleted', checkPermission, ProductController.getDeleted);
-
-// @route   GET api/products/:id/review
-// @desc    Get all review content of a product
-// @access  Public
-router.get('/:id/review', ProductController.getProductReview);
-
-// @route   POST api/products/:id/review
-// @desc    Review on a product
-// @access  Private
-router.post('/:id/review', [auth, validateReview], ProductController.review);
-
-// @route   PUT api/products/:id/review/:reviewId
-// @desc    Comment on a review
-// @access  Private
-router.put(
-  '/:id/review/:reviewId',
-  [auth, validateComment],
-  ProductController.comment
-);
-
-// @route   DELETE api/products/:id/review/:reviewId/comment/:commentId
-// @desc    Delete a comment on a review
-// @access  Private
-router.delete(
-  '/:id/review/:reviewId/comment/:commentId',
-  auth,
-  ProductController.deleteComment
-);
-
-// @route   DELETE api/products/:id/review/:reviewId
-// @desc    Delete a review
-// @access  Private
-router.delete('/:id/review/:reviewId', auth, ProductController.deleteReview);
-
 // @route   GET api/products/:id
-// @desc    Get product by id
+// @desc    Lấy sản phẩm theo id
 // @access  Public
 router.get('/:id', ProductController.getById);
 
 // @route   GET api/products/types/:typeId
-// @desc    Get all products by typeId
+// @desc    Lấy tất cả sản phẩm theo typeId
 // @access  Public
 router.get('/types/:typeId', ProductController.getByTypeId);
 
 // @route   GET api/products/categories/:categoryId
-// @desc    Get all products by Category
+// @desc    Lấy tất cả sản phẩm theo categoryId
 // @access  Public
 router.get('/categories/:categoryId', ProductController.getByCategoryId);
 
 // @route   POST api/products
-// @desc    Create products
+// @desc    Tạo sản phẩm
 // @access  Private
 router.post(
   '/',
-  [checkPermission, validateCreateProductInfo],
-  ProductController.Add
+  [authAdmin, checkPermission, validateCreateProductInfo],
+  ProductController.add
 );
 
 // @route   PUT api/products
-// @desc    Update products
+// @desc    Cập nhật sản phẩm
 // @access  Private
 router.put(
   '/',
-  [checkPermission, validateUpdateProductInfo],
-  ProductController.Edit
+  [authAdmin, checkPermission, validateUpdateProductInfo],
+  ProductController.edit
 );
 
 // @route   DELETE api/products/:id
-// @desc    Soft delete products (hide)
+// @desc    Xóa mềm
 // @access  Private
-router.delete('/:id', checkPermission, ProductController.softDelete);
+router.delete(
+  '/:id',
+  [authAdmin, checkPermission],
+  ProductController.softDelete
+);
 
 // @route   PATCH api/products/:id/restore
-// @desc    Restore products has been soft deleted
+// @desc    Phục hồi sản phẩm đã xóa mềm
 // @access  Private
-router.patch('/:id/restore', checkPermission, ProductController.restore);
+router.patch(
+  '/:id/restore',
+  [authAdmin, checkPermission],
+  ProductController.restore
+);
 
 module.exports = router;

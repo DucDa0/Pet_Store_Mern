@@ -1,5 +1,5 @@
 import api from '../../api';
-import { LOGIN_SUCCESS, USER_LOADED, AUTH_ERROR, UPDATE_USER } from '../types';
+import { LOGIN_SUCCESS, USER_LOADED, AUTH_ERROR } from '../types';
 import { notification } from 'antd';
 
 // Load User
@@ -177,12 +177,8 @@ export const resetPassword = (data) => async (dispatch) => {
 // update user info
 export const updateUserInfo = (data) => async (dispatch) => {
   try {
-    const res = await api.put('/auth/update_user', data);
-    dispatch({
-      type: UPDATE_USER,
-      payload: res.data,
-    });
-    loadUser();
+    await api.put('/auth/update_user', data);
+    dispatch(loadUser());
     notification.open({
       message: 'Thành công!',
       description: 'Cập nhật thông tin thành công!',
@@ -202,14 +198,11 @@ export const updateUserInfo = (data) => async (dispatch) => {
 };
 
 // Add address for user
-export const AddAdress = (data) => async (dispatch) => {
+export const addAdress = (data) => async (dispatch) => {
   try {
-    const res = await api.put('/auth/add_address', data);
-    dispatch({
-      type: UPDATE_USER,
-      payload: res.data,
-    });
-    loadUser();
+    await api.put('/auth/add_address', data);
+
+    dispatch(loadUser());
     return true;
   } catch (err) {
     const errors = err.response.data.errors;
@@ -226,14 +219,10 @@ export const AddAdress = (data) => async (dispatch) => {
 };
 
 // Remove address for user
-export const RemoveAdress = (address_id) => async (dispatch) => {
+export const removeAdress = (address_id) => async (dispatch) => {
   try {
-    const res = await api.put('/auth/remove_address', { address_id });
-    dispatch({
-      type: UPDATE_USER,
-      payload: res.data,
-    });
-    loadUser();
+    await api.put('/auth/remove_address', { address_id });
+    dispatch(loadUser());
   } catch (err) {
     const errors = err.response.data.errors;
 
@@ -249,14 +238,10 @@ export const RemoveAdress = (address_id) => async (dispatch) => {
 };
 
 // Update address for user
-export const UpdateAdress = (data) => async (dispatch) => {
+export const updateAdress = (data) => async (dispatch) => {
   try {
-    const res = await api.put('/auth/update_address', data);
-    dispatch({
-      type: UPDATE_USER,
-      payload: res.data,
-    });
-    loadUser();
+    await api.put('/auth/update_address', data);
+    dispatch(loadUser());
     return true;
   } catch (err) {
     const errors = err.response.data.errors;
@@ -273,9 +258,10 @@ export const UpdateAdress = (data) => async (dispatch) => {
 };
 
 // Add/Remove favorite product
-export const UpdateFavorite = (productId) => async (dispatch) => {
+export const updateFavorite = (productId) => async (dispatch) => {
   try {
     const res = await api.put('/auth/favorite', { productId });
+    dispatch(loadUser());
     return res.data.check;
   } catch (err) {
     const errors = err.response.data.errors;
@@ -292,9 +278,28 @@ export const UpdateFavorite = (productId) => async (dispatch) => {
 };
 
 // Get favorite products
-export const GetFavorite = () => async (dispatch) => {
+export const getFavorite = () => async (dispatch) => {
   try {
     const res = await api.get('/auth/favorite');
+    return res.data;
+  } catch (err) {
+    const errors = err.response.data.errors;
+
+    if (errors) {
+      errors.forEach((error) =>
+        notification.open({
+          message: 'Lỗi!',
+          description: error.msg,
+        })
+      );
+    }
+  }
+};
+
+// Get favorite products
+export const getPurchased = () => async (dispatch) => {
+  try {
+    const res = await api.get('/auth/purchased');
     return res.data;
   } catch (err) {
     const errors = err.response.data.errors;

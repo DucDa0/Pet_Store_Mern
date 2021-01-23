@@ -7,12 +7,13 @@ import { CartAction, UserNav, Loader } from '../../components';
 import { getProductsByType } from '../../redux/actions/products';
 import { connect } from 'react-redux';
 import './styles.scss';
+import { withRouter } from 'react-router-dom';
 
 const { Search } = Input;
 
-const NavBar = ({ auth: { isAuthenticated, user, loading } }) => {
+const NavBar = ({ auth: { isAuthenticated, user, loading }, history }) => {
   const onSearch = (value) => {
-    console.log(value);
+    history.push(`/pets/search?q=${value}`);
   };
   return (
     <section className='navbar'>
@@ -38,7 +39,7 @@ const NavBar = ({ auth: { isAuthenticated, user, loading } }) => {
             ) : !isAuthenticated ? (
               <Fragment>
                 <Link to='/signin'>Đăng nhập</Link>
-                <Link to='/signup'>Đăng kí</Link>
+                <Link to='/signup'>Đăng ký</Link>
               </Fragment>
             ) : (
               <div className='navbar__user'>
@@ -56,25 +57,25 @@ const NavBar = ({ auth: { isAuthenticated, user, loading } }) => {
           </Link>
           <Link
             className='navbar__wrap-actions--link'
-            to={`/pets/all_types/5f9d1f0f92c1c0b400863677`}
+            to={`/pets/dog/5f9d1f0f92c1c0b400863677`}
           >
             Chó cảnh
           </Link>
           <Link
             className='navbar__wrap-actions--link'
-            to={`/pets/all_types/5f9d1f1d92c1c0b400863843`}
+            to={`/pets/cat/5f9d1f1d92c1c0b400863843`}
           >
             Mèo cảnh
           </Link>
           <Link
             className='navbar__wrap-actions--link'
-            to={`/pets/all_types/5ff00f72488a9a35bcb5d1dc`}
+            to={`/pets/food/5ff00f72488a9a35bcb5d1dc`}
           >
             Thức ăn
           </Link>
           <Link
             className='navbar__wrap-actions--link'
-            to={`/pets/all_types/5ff01f04d5b5e035d8ed9f67`}
+            to={`/pets/accessories/5ff01f04d5b5e035d8ed9f67`}
           >
             Phụ kiện
           </Link>
@@ -96,4 +97,6 @@ NavBar.propTypes = {
 const mapStateToProps = (state) => ({
   auth: state.auth,
 });
-export default connect(mapStateToProps, { getProductsByType })(NavBar);
+export default connect(mapStateToProps, { getProductsByType })(
+  withRouter(NavBar)
+);

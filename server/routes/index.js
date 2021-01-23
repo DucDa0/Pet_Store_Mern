@@ -3,8 +3,13 @@ const types = require('./api/types');
 const categories = require('./api/categories');
 const auth = require('./api/auth');
 const cart = require('./api/cart');
-const order = require('./api/order');
+const orders = require('./api/orders');
 const client = require('./api/client');
+const receipts = require('./api/receipts');
+const employee = require('./api/employee');
+const reviews = require('./api/reviews');
+const bills = require('./api/bills');
+const statistical = require('./api/statistical');
 
 function route(app) {
   //Products route
@@ -19,14 +24,29 @@ function route(app) {
   //Auth route
   app.use('/api/auth', auth);
 
+  // Employee route
+  app.use('/api/employee', employee);
+
   //Cart route
   app.use('/api/cart', cart);
 
   //Order route
-  app.use('/api/order', order);
+  app.use('/api/orders', orders);
 
   // Client route
   app.use('/api/client', client);
+
+  // Receipt route
+  app.use('/api/receipts', receipts);
+
+  // Review route
+  app.use('/api/reviews', reviews);
+
+  // Bill route
+  app.use('/api/bills', bills);
+  
+  // Statistical route
+  app.use('/api/statistical', statistical);
 }
 
 module.exports = route;

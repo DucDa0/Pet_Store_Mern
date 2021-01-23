@@ -1,6 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, Fragment } from 'react';
-import { Form, Button, Input, Select, message, Upload, Checkbox } from 'antd';
+import {
+  Form,
+  Button,
+  Input,
+  Select,
+  Upload,
+  Checkbox,
+  InputNumber,
+} from 'antd';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import { connect } from 'react-redux';
@@ -21,6 +29,7 @@ const ProductAddForm = ({
   setEdit,
   item,
 }) => {
+  let getIsShow = edit ? item.isShow : true;
   const [form] = Form.useForm();
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [content, setContent] = useState('');
@@ -28,6 +37,7 @@ const ProductAddForm = ({
   const [typeState, setTypeState] = useState([]);
   const [images, setImages] = useState([]);
   const [status, setStatus] = useState(true);
+  const [isShow, setIsShow] = useState(getIsShow);
   useEffect(() => {
     if (edit) {
       setStatus(item.status);
@@ -49,9 +59,9 @@ const ProductAddForm = ({
     getTypes();
   }, [item]);
   const onFinish = async (values) => {
-    if (images.length <= 0) {
-      return message.error('Vui lòng chọn hình ảnh!');
-    }
+    // if (images.length <= 0) {
+    //   return message.error('Vui lòng chọn hình ảnh!');
+    // }
     if (edit) {
       setConfirmLoading(true);
       await editProduct({
@@ -59,6 +69,7 @@ const ProductAddForm = ({
         description: content,
         id: item._id,
         status,
+        isShow,
         images: images.map((img) => img.response.url),
       });
       setConfirmLoading(false);
@@ -68,6 +79,7 @@ const ProductAddForm = ({
     await createProduct({
       ...values,
       description: content,
+      isShow,
       images: images.map((img) => img.response.url),
     });
     setConfirmLoading(false);
@@ -81,6 +93,9 @@ const ProductAddForm = ({
   };
   function onChangeStatus(e) {
     setStatus(e.target.checked);
+  }
+  function onChangeShow(e) {
+    setIsShow(e.target.checked);
   }
   return (
     <Fragment>
@@ -158,6 +173,7 @@ const ProductAddForm = ({
           <Input placeholder='Nguồn gốc' />
         </Form.Item>
         <Form.Item
+          style={{ width: '100%' }}
           rules={[
             {
               required: true,
@@ -168,7 +184,11 @@ const ProductAddForm = ({
           label='Đơn giá'
           name='price'
         >
-          <Input placeholder='Đơn giá' />
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
+            placeholder='Đơn giá'
+          />
         </Form.Item>
         <Form.Item
           rules={[
@@ -181,7 +201,11 @@ const ProductAddForm = ({
           label='Số lượng'
           name='quantity'
         >
-          <Input placeholder='Số lượng' />
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
+            placeholder='Số lượng'
+          />
         </Form.Item>
         {edit && (
           <Form.Item label='Tình trạng'>
@@ -190,7 +214,11 @@ const ProductAddForm = ({
             </Checkbox>
           </Form.Item>
         )}
-
+        <Form.Item label='Hiển thị'>
+          <Checkbox onChange={onChangeShow} checked={isShow}>
+            Hiển thị bên người dùng
+          </Checkbox>
+        </Form.Item>
         <Form.Item label='Ảnh'>
           <Upload
             action='/uploadProduct'
@@ -204,12 +232,11 @@ const ProductAddForm = ({
 
         <Form.Item label='Mô tả'>
           <CKEditor
-            data={edit ? item.content : ''}
+            data={edit ? item.description : ''}
             config={{
               ckfinder: {
                 uploadUrl: '/upload',
               },
-              height: 800,
             }}
             editor={ClassicEditor}
             onChange={handleCkeditor}

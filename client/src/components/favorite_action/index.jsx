@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, notification, message } from 'antd';
 import { Heart, HeartFill } from '../../icons';
 import { connect } from 'react-redux';
-import { UpdateFavorite } from '../../redux/actions/auth';
+import { updateFavorite } from '../../redux/actions/auth';
 
 const FavoriteAction = ({
   data,
   favoriteState,
   isAuthenticated,
-  UpdateFavorite,
+  updateFavorite,
 }) => {
   const [isFavorite, setIsFavorite] = useState(favoriteState);
   const [isProcessing, setIsProcessing] = useState(false);
+  useEffect(() => {
+    setIsFavorite(favoriteState);
+  }, [favoriteState]);
   const handleClick = async (productId) => {
     if (!isAuthenticated) {
       return notification.open({
@@ -23,11 +26,11 @@ const FavoriteAction = ({
       return;
     }
     setIsProcessing(true);
-    const res = await UpdateFavorite(productId);
+    const res = await updateFavorite(productId);
+    setIsProcessing(false);
     if (!res) {
       message.success('Đã thêm sản phẩm vào mục yêu thích.');
     }
-    setIsProcessing(false);
     if (isFavorite) {
       setIsFavorite(false);
       return;
@@ -36,6 +39,8 @@ const FavoriteAction = ({
   };
   return (
     <Button
+      block
+      style={{ height: '100%' }}
       loading={isProcessing}
       type='text'
       icon={isAuthenticated && isFavorite ? <HeartFill /> : <Heart />}
@@ -43,4 +48,4 @@ const FavoriteAction = ({
     />
   );
 };
-export default connect(null, { UpdateFavorite })(FavoriteAction);
+export default connect(null, { updateFavorite })(FavoriteAction);

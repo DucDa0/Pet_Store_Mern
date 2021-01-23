@@ -1,9 +1,10 @@
 import { useState, useEffect, Fragment } from 'react';
 import { connect } from 'react-redux';
 import { useLocation, useHistory } from 'react-router-dom';
-import { ProductAddForm } from '../../../components';
-import { Button, Table, Popconfirm, Pagination } from 'antd';
+import { ProductAddForm, ReceiptModal, OrderModal } from '../../../components';
+import { Button, Table, Popconfirm, Pagination, Radio } from 'antd';
 import queryString from 'query-string';
+import { PlusOutlined } from '@ant-design/icons';
 import { getAllProducts, removeProduct } from '../../../redux/actions/products';
 
 const ProductList = ({
@@ -19,6 +20,10 @@ const ProductList = ({
   const [isLoading, setIsLoading] = useState(false);
   const [edit, setEdit] = useState(false);
   const [item, setItem] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [visible, setVisible] = useState(false);
+  const [view, setView] = useState(false);
+  const [value, setValue] = useState('receipt');
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   useEffect(() => {
     async function getData() {
@@ -26,17 +31,26 @@ const ProductList = ({
       await getAllProducts(filter, page);
       setIsLoading(false);
     }
-    if (tabChange === 'list' && !edit) {
+    if (tabChange === 'list' && !edit && !visible && !view) {
       getData();
     }
-  }, [getAllProducts, tabChange, edit, filter, page]);
+  }, [getAllProducts, tabChange, edit, filter, page, visible, view]);
   const remove = async (id) => {
     setIsLoading(true);
     await removeProduct(id);
     setIsLoading(false);
   };
-  const onSelectChange = (selectedRowKeys) => {
-    setSelectedRowKeys(selectedRowKeys);
+  const onSelectChange = (_, selectedRows) => {
+    let mapData = selectedRows.map((p) => ({
+      key: p.key,
+      productName: p.productName,
+      quantity: p.quantity,
+      quantityImport: 0,
+      amount: 1,
+      price: p.price,
+    }));
+    setSelectedRowKeys(_);
+    setSelectedRows(mapData);
   };
   const handlePagination = async (_page) => {
     if (filter) {
@@ -56,6 +70,14 @@ const ProductList = ({
     {
       title: 'Đơn giá',
       dataIndex: 'price',
+      render: (value) => (
+        <span>
+          {parseInt(value).toLocaleString('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          })}
+        </span>
+      ),
     },
     {
       title: 'Tình trạng',
@@ -98,12 +120,52 @@ const ProductList = ({
       },
     },
   ];
+  const onChange = (e) => {
+    setSelectedRowKeys([]);
+    setSelectedRows([]);
+    setValue(e.target.value);
+  };
   return (
     <Fragment>
       {!edit ? (
         <Fragment>
+          <Radio.Group onChange={onChange} value={value}>
+            <Radio value={'receipt'}>Thêm phiếu nhập</Radio>
+            <Radio value={'order'}>Thêm hóa đơn</Radio>
+          </Radio.Group>
+          {value === 'receipt' ? (
+            <Button
+              disabled={selectedRows.length > 0 ? false : true}
+              style={{ margin: '1rem 0' }}
+              type='primary'
+              icon={<PlusOutlined />}
+              onClick={() => setVisible(true)}
+            >
+              Thêm phiếu nhập
+            </Button>
+          ) : (
+            value === 'order' && (
+              <Button
+                disabled={selectedRows.length > 0 ? false : true}
+                style={{ margin: '1rem 0' }}
+                icon={<PlusOutlined />}
+                onClick={() => setView(true)}
+              >
+                Thêm hóa đơn
+              </Button>
+            )
+          )}
+          {visible && (
+            <ReceiptModal setVisible={setVisible} data={selectedRows} />
+          )}
+          {view && <OrderModal setView={setView} data={selectedRows} />}
           <Table
-            rowSelection={{ selectedRowKeys, onChange: onSelectChange }}
+            rowSelection={{
+              selectedRowKeys,
+              selectedRows,
+              onChange: onSelectChange,
+              selections: [Table.SELECTION_NONE],
+            }}
             columns={columns}
             loading={isLoading}
             dataSource={products}

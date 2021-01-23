@@ -9,6 +9,11 @@ import {
   DashBoard,
   Type,
   Product,
+  Receipts,
+  Order,
+  Bill,
+  Review,
+  Statistical,
 } from '../../pages';
 
 import queryString from 'query-string';
@@ -30,6 +35,16 @@ const Home = ({ location }) => {
         return <Type />;
       case 'product':
         return <Product />;
+      case 'receipt':
+        return <Receipts />;
+      case 'order':
+        return <Order />;
+      case 'bill':
+        return <Bill />;
+      case 'review':
+        return <Review />;
+      case 'statistical':
+        return <Statistical />;
       default:
         return <DashBoard />;
     }
