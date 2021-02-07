@@ -12,8 +12,6 @@ import {
   DetailReview,
   DetailComments,
 } from '../../components';
-
-import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import './styles.scss';
 
 import { getProductById } from '../../redux/actions/products';
@@ -64,23 +62,31 @@ const PetDetails = ({
         </Breadcrumb>
         <div className='pet-details__content'>
           {loading || !data ? (
-            <Loader className={'loader'} />
+            <Loader className={'loader-inside'} />
           ) : (
             <Fragment>
               <div className='pet-details__wrap'>
-                <Row gutter={[16, 32]}>
+                <Row gutter={[16, 0]}>
                   <Col xs={24} sm={24} md={12} lg={12}>
-                    <Carousel autoPlay>
+                    <Carousel
+                      interval={4000}
+                      transitionTime={750}
+                      showArrows={true}
+                      autoPlay={true}
+                      swipeable={true}
+                      infiniteLoop={true}
+                    >
                       {data.images.map((img, index) => (
-                        <img
-                          style={{
-                            maxWidth: '100%',
-                            height: 'auto',
-                          }}
-                          key={index}
-                          src={img}
-                          alt='No_Image'
-                        />
+                        <div key={index}>
+                          <img
+                            style={{
+                              maxWidth: '100%',
+                              height: 'auto',
+                            }}
+                            src={img}
+                            alt='No_Image'
+                          />
+                        </div>
                       ))}
                     </Carousel>
                   </Col>

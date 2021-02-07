@@ -49,16 +49,24 @@ const PetsType = ({ getTypesByCatId, match, types: { types } }) => {
           </Breadcrumb>
         </div>
         {isLoading ? (
-          <Loader className={'loader'} />
+          <Loader className={'loader-inside'} />
         ) : (
           <div className='petsType__content'>
-            <Row gutter={[16, 16]}>
+            <Row
+              gutter={[
+                { xs: 8, sm: 16, md: 16, lg: 16 },
+                { xs: 8, sm: 16, md: 16, lg: 16 },
+              ]}
+            >
               {types.map((item) => (
                 <Col key={item._id} xs={12} sm={8} md={6} lg={6}>
                   <Link to={redirectUrl(item._id)}>
                     <Card bordered={false} hoverable>
                       <div
-                        style={{ textAlign: 'center', marginBottom: '1.5rem' }}
+                        style={{
+                          textAlign: 'center',
+                          marginBottom: '1.5rem',
+                        }}
                       >
                         <img
                           width='100%'

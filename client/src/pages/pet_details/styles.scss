@@ -10,6 +10,7 @@
     }
   }
   &__wrap {
+    margin-bottom: 1.5rem;
     .ant-card-head-title {
       color: var(--mainstream-color);
       font-size: 1.2rem;
@@ -19,5 +20,11 @@
         font-size: 1rem;
       }
     }
+  }
+  .carousel .thumbs-wrapper {
+    ul {
+      margin-bottom: 0;
+    }
+    margin: 1rem;
   }
 }
